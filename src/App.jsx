@@ -77,6 +77,17 @@ const CATEGORIES = [
   { id: "entertainment", label: "Hiburan",    renderIcon: (c) => <IcoMusic     c={c} />, color: "#EF4444" },
 ];
 
+// ─── Income Categories ────────────────────────────────────────────────────────
+const INCOME_CATEGORIES = [
+  { id: "salary",     label: "Gaji",           color: "#10B981" },
+  { id: "bonus",      label: "Bonus",          color: "#06B6D4" },
+  { id: "freelance",  label: "Freelance",      color: "#8B5CF6" },
+  { id: "investment", label: "Investasi",      color: "#F59E0B" },
+  { id: "business",   label: "Bisnis",         color: "#EF4444" },
+  { id: "gift",       label: "Hadiah/Angpao",  color: "#EC4899" },
+  { id: "other_in",  label: "Lainnya",         color: "#6B7280" },
+];
+
 // ─── Subscription icon map (render functions) ─────────────────────────────────
 const SUB_ICON = {
   Netflix:    (c) => <IcoTv    c={c} s={18} />,
@@ -86,14 +97,43 @@ const SUB_ICON = {
 };
 
 // ─── Sample data ──────────────────────────────────────────────────────────────
-const MONTHLY_SAMPLE = [
-  { month: "Jan", pengeluaran: 4200000, pemasukan: 8500000 },
-  { month: "Feb", pengeluaran: 5100000, pemasukan: 8500000 },
-  { month: "Mar", pengeluaran: 3900000, pemasukan: 9200000 },
-  { month: "Apr", pengeluaran: 6100000, pemasukan: 8500000 },
-  { month: "Mei", pengeluaran: 4700000, pemasukan: 9800000 },
-  { month: "Jun", pengeluaran: 5400000, pemasukan: 10000000 },
-];
+// MONTHLY_SAMPLE diganti dengan buildMonthlyData() — dihitung dari transaksi nyata,
+// mulai dari bulan pertama transaksi ada, sampai bulan berjalan.
+function buildMonthlyData(transactions) {
+  if (!transactions || transactions.length === 0) {
+    // Fallback: tampilkan bulan berjalan saja
+    const now = new Date();
+    const BULAN = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+    return [{ month: BULAN[now.getMonth()], pengeluaran: 0, pemasukan: 0 }];
+  }
+  const BULAN = ["Jan","Feb","Mar","Apr","Mei","Jun","Jul","Agu","Sep","Okt","Nov","Des"];
+  const now = new Date();
+  // Cari bulan paling awal dari semua transaksi
+  const dates = transactions.map(t => new Date(t.date));
+  const earliest = new Date(Math.min(...dates));
+  // Bangun daftar bulan dari earliest s.d. sekarang
+  const months = [];
+  let cur = new Date(earliest.getFullYear(), earliest.getMonth(), 1);
+  const end = new Date(now.getFullYear(), now.getMonth(), 1);
+  while (cur <= end) {
+    months.push({ year: cur.getFullYear(), month: cur.getMonth() });
+    cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+  }
+  // Aggregate per bulan — max 6 bulan terakhir untuk keterbacaan chart
+  const result = months.slice(-6).map(({ year, month }) => {
+    const label = BULAN[month];
+    const txMonth = transactions.filter(t => {
+      const d = new Date(t.date);
+      return d.getFullYear() === year && d.getMonth() === month;
+    });
+    return {
+      month: label,
+      pengeluaran: txMonth.filter(t => t.type === "expense").reduce((s,t) => s + t.amount, 0),
+      pemasukan:   txMonth.filter(t => t.type === "income").reduce((s,t) => s + t.amount, 0),
+    };
+  });
+  return result;
+}
 
 const SPLIT_SAMPLE = [
   { name: "Nasi Goreng",  price: 35000, qty: 2 },
@@ -189,7 +229,8 @@ const FieldInput = ({ label, ...props }) => (
     <input {...props} style={{
       width: "100%", padding: "12px 16px", borderRadius: 14, border: "1.5px solid #E5E7EB",
       fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", boxSizing: "border-box",
-      color: "#1F2937", transition: "border-color 0.2s", ...props.style
+      color: "#1F2937", backgroundColor: "#FFFFFF", transition: "border-color 0.2s",
+      colorScheme: "light", WebkitTextFillColor: "#1F2937", ...props.style
     }}
       onFocus={e => e.target.style.borderColor = PURPLE}
       onBlur={e => e.target.style.borderColor = "#E5E7EB"}
@@ -203,7 +244,7 @@ const FieldSelect = ({ label, children, ...props }) => (
     <select {...props} style={{
       width: "100%", padding: "12px 16px", borderRadius: 14, border: "1.5px solid #E5E7EB",
       fontSize: 15, fontFamily: "'DM Sans', sans-serif", outline: "none", color: "#1F2937",
-      background: "white", appearance: "none", ...props.style
+      backgroundColor: "#FFFFFF", appearance: "none", colorScheme: "light", ...props.style
     }}>
       {children}
     </select>
@@ -318,7 +359,7 @@ function Dashboard({ transactions, goals, loading }) {
           <Badge color={PINK}>2025</Badge>
         </div>
         <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={MONTHLY_SAMPLE} barGap={4}>
+          <BarChart data={buildMonthlyData(transactions)} barGap={4}>
             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9CA3AF" }} />
             <YAxis hide />
             <Tooltip content={<Tip />} />
@@ -391,6 +432,7 @@ function Transactions({ transactions, add, remove, loading }) {
   const [search, setSearch] = useState("");
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({ type: "expense", title: "", amount: "", category: "shopping", date: new Date().toISOString().split("T")[0], note: "" });
+  const activeCats = form.type === "income" ? INCOME_CATEGORIES : CATEGORIES;
 
   const filtered = transactions.filter(t =>
     (filter === "all" || t.type === filter) &&
@@ -461,7 +503,7 @@ function Transactions({ transactions, add, remove, loading }) {
       <Modal open={modal} onClose={() => setModal(false)} title="Tambah Transaksi">
         <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
           {[{id:"expense",l:"Pengeluaran"},{id:"income",l:"Pemasukan"}].map(t => (
-            <button key={t.id} onClick={() => setForm(f => ({...f, type: t.id}))} style={{
+            <button key={t.id} onClick={() => setForm(f => ({...f, type: t.id, category: t.id === "income" ? "salary" : "shopping"}))} style={{
               flex: 1, padding: "10px", border: `2px solid ${form.type === t.id ? PURPLE : "#E5E7EB"}`,
               borderRadius: 12, cursor: "pointer", background: form.type === t.id ? PURPLE+"12" : "white",
               color: form.type === t.id ? PURPLE : "#9CA3AF", fontWeight: 600, fontSize: 14, fontFamily: "'DM Sans',sans-serif"
@@ -472,7 +514,7 @@ function Transactions({ transactions, add, remove, loading }) {
         <FieldInput label="Jumlah (Rp)" type="number" placeholder="0" value={form.amount} onChange={e => setForm(f => ({...f, amount: e.target.value}))} />
         {form.amount && <div style={{ marginTop: -12, marginBottom: 12, fontSize: 13, color: PURPLE, fontWeight: 600 }}>{rp(parseFloat(form.amount)||0)}</div>}
         <FieldSelect label="Kategori" value={form.category} onChange={e => setForm(f => ({...f, category: e.target.value}))}>
-          {CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
+          {activeCats.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
         </FieldSelect>
         <FieldInput label="Tanggal" type="date" value={form.date} onChange={e => setForm(f => ({...f, date: e.target.value}))} />
         <FieldInput label="Catatan (opsional)" placeholder="Tambah catatan..." value={form.note} onChange={e => setForm(f => ({...f, note: e.target.value}))} />
@@ -514,7 +556,7 @@ function Reports({ transactions, loading }) {
           <IcoArrowUp s={14} c="white" /> Pemasukan: {rp(inc)}
         </div>
         <ResponsiveContainer width="100%" height={70} style={{ marginTop: 12 }}>
-          <AreaChart data={MONTHLY_SAMPLE.map(m => ({...m, net: m.pemasukan - m.pengeluaran}))}>
+          <AreaChart data={buildMonthlyData(transactions).map(m => ({...m, net: m.pemasukan - m.pengeluaran}))}>
             <Area type="monotone" dataKey="net" stroke="rgba(255,255,255,0.8)" fill="rgba(255,255,255,0.15)" strokeWidth={2} dot={false} />
           </AreaChart>
         </ResponsiveContainer>
@@ -549,7 +591,7 @@ function Reports({ transactions, loading }) {
       <Card>
         <h2 style={{ margin: "0 0 16px", fontSize: 16, fontWeight: 700, color: "#1F2937" }}>Tren Bulanan</h2>
         <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={MONTHLY_SAMPLE}>
+          <LineChart data={buildMonthlyData(transactions)}>
             <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "#9CA3AF" }} />
             <YAxis hide />
             <Tooltip contentStyle={{ borderRadius: 12, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,0.1)", fontSize: 12 }} formatter={v => [rp(v)]} />
@@ -997,6 +1039,9 @@ function AppContent() {
         @keyframes fadeIn  { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         @keyframes ping    { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(2);opacity:0} }
         select { appearance: none; }
+        /* Force light mode — prevent browser/OS dark mode from inverting form fields */
+        :root { color-scheme: light only; }
+        input, select, textarea { color-scheme: light; background-color: #FFFFFF !important; color: #1F2937 !important; }
       `}</style>
 
       <div style={{ width:"100%",maxWidth:430,minHeight:"100vh",display:"flex",flexDirection:"column" }}>
