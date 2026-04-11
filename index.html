@@ -1,10 +1,70 @@
 <!doctype html>
-<html lang="en">
+<html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>finance-tracker</title>
+
+    <!-- ── Favicon & Touch Icons ──────────────────────────────────────────── -->
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <link rel="apple-touch-icon" href="/icons/icon-180x180.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
+
+    <!-- ── PWA Meta Tags ───────────────────────────────────────────────────── -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#C44DFF" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="AlphaBear" />
+    <meta name="application-name" content="AlphaBear" />
+    <meta name="msapplication-TileColor" content="#C44DFF" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.png" />
+
+    <!-- ── PWA Manifest ────────────────────────────────────────────────────── -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- ── SEO & Sharing ──────────────────────────────────────────────────── -->
+    <meta name="description" content="Finance tracker pribadi untuk keluarga. Catat pemasukan, pengeluaran, tabungan, dan scan struk belanja." />
+    <meta property="og:title" content="AlphaBear Finance" />
+    <meta property="og:description" content="Finance tracker pribadi untuk keluarga" />
+    <meta property="og:image" content="/icons/icon-512x512.png" />
+    <meta property="og:type" content="website" />
+
+    <!-- ── Fonts ───────────────────────────────────────────────────────────── -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+    <!-- ── Safe area insets untuk iPhone notch/home indicator ─────────────── -->
+    <style>
+      :root {
+        color-scheme: light only;
+        --sat: env(safe-area-inset-top);
+        --sar: env(safe-area-inset-right);
+        --sab: env(safe-area-inset-bottom);
+        --sal: env(safe-area-inset-left);
+      }
+
+      * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+      }
+
+      /* Prevent overscroll bounce di iOS */
+      html, body {
+        overscroll-behavior: none;
+        overflow-x: hidden;
+      }
+
+      /* Fix input style override dari dark mode */
+      input, textarea, select {
+        color-scheme: light;
+        background-color: #FFFFFF !important;
+        color: #1A1035 !important;
+      }
+    </style>
+
+    <title>AlphaBear Finance</title>
   </head>
   <body>
     <div id="root"></div>

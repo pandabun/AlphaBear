@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B9D"/>
+      <stop offset="50%" style="stop-color:#C44DFF"/>
+      <stop offset="100%" style="stop-color:#8B5CF6"/>
+    </linearGradient>
+    <linearGradient id="bear" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFFFFF;stop-opacity:0.95"/>
+      <stop offset="100%" style="stop-color:#F5E6FF;stop-opacity:0.95"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background rounded rect (maskable safe zone = 80% center) -->
+  <rect width="512" height="512" rx="115" fill="url(#bg)"/>
+
+  <!-- Subtle inner glow -->
+  <rect width="512" height="512" rx="115" fill="white" opacity="0.08"/>
+
+  <!-- Bear ears (left) -->
+  <circle cx="152" cy="168" r="68" fill="url(#bear)" opacity="0.9"/>
+  <circle cx="152" cy="168" r="44" fill="#FFB3D1" opacity="0.6"/>
+
+  <!-- Bear ears (right) -->
+  <circle cx="360" cy="168" r="68" fill="url(#bear)" opacity="0.9"/>
+  <circle cx="360" cy="168" r="44" fill="#FFB3D1" opacity="0.6"/>
+
+  <!-- Bear head -->
+  <ellipse cx="256" cy="288" rx="148" ry="136" fill="url(#bear)"/>
+
+  <!-- Eyes -->
+  <circle cx="210" cy="258" r="22" fill="#3D1A6E"/>
+  <circle cx="302" cy="258" r="22" fill="#3D1A6E"/>
+  <!-- Eye shine -->
+  <circle cx="218" cy="250" r="7" fill="white"/>
+  <circle cx="310" cy="250" r="7" fill="white"/>
+
+  <!-- Muzzle -->
+  <ellipse cx="256" cy="316" rx="58" ry="44" fill="#FFD4E8" opacity="0.85"/>
+
+  <!-- Nose -->
+  <ellipse cx="256" cy="302" rx="20" ry="13" fill="#C44DFF"/>
+
+  <!-- Smile -->
+  <path d="M 228 328 Q 256 352 284 328" stroke="#8B5CF6" stroke-width="5" fill="none" stroke-linecap="round"/>
+
+  <!-- Small alpha symbol (α) di bawah muzzle -->
+  <text x="256" y="385" text-anchor="middle" font-family="Georgia,serif" font-size="38" font-weight="bold" fill="#8B5CF6" opacity="0.7">α</text>
+</svg>
