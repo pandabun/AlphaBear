@@ -15,7 +15,9 @@ import { useAuth } from "./context/AuthContext";
 import { useTransactions, useGoals, useSubscriptions } from "./hooks/useData";
 import { useSessionRecovery } from "./hooks/useSessionRecovery";
 import { usePWA } from "./hooks/usePWA";
+import { usePullToRefresh } from "./hooks/usePullToRefresh";
 import InstallBanner from "./components/InstallBanner";
+import PullToRefresh from "./components/PullToRefresh";
 import ScanPage from "./pages/ScanPage";
 import SubscriptionLogo from "./components/SubscriptionLogo";
 
@@ -717,15 +719,29 @@ function ProfilePage({ profile, signOut }) {
 // ─── Main App ─────────────────────────────────────────────────────────────────
 function AppContent() {
   const { user, profile, loading: authLoading, signOut, isAuthenticated } = useAuth();
-  const { transactions, loading: txLoading,    add: addTx,  remove: removeTx }  = useTransactions();
-  const { goals,        loading: goalsLoading }                                   = useGoals();
-  const { subscriptions,loading: subsLoading,  add: addSub, remove: removeSub }  = useSubscriptions();
+  const { transactions, loading: txLoading,    add: addTx,  remove: removeTx,  refetch: refetchTx }   = useTransactions();
+  const { goals,        loading: goalsLoading,                                  refetch: refetchGoals } = useGoals();
+  const { subscriptions,loading: subsLoading,  add: addSub, remove: removeSub, refetch: refetchSubs }  = useSubscriptions();
   const [page, setPage]             = useState("dashboard");
   const [toast, setToast]           = useState(null);
   const [showInstallBanner, setShowInstallBanner] = useState(true);
 
   // PWA: register service worker + detect install prompt
   const { isInstallable, promptInstall } = usePWA();
+
+  // Pull-to-refresh: refetch semua data
+  const handleRefresh = async () => {
+    await Promise.all([
+      refetchTx?.(),
+      refetchGoals?.(),
+      refetchSubs?.(),
+    ]);
+  };
+
+  const { pullDistance, pullProgress, isRefreshing, isTriggered } = usePullToRefresh(
+    handleRefresh,
+    { disabled: page === "scan" } // nonaktif di halaman scan
+  );
 
   const { isRecovering } = useSessionRecovery({
     onSessionExpired: () => setToast({ msg: "Sesi berakhir. Silakan login kembali.", type: "warn" })
@@ -809,6 +825,14 @@ function AppContent() {
           />
         )}
 
+        {/* Pull-to-Refresh indicator */}
+        <PullToRefresh
+          pullDistance={pullDistance}
+          pullProgress={pullProgress}
+          isRefreshing={isRefreshing}
+          isTriggered={isTriggered}
+        />
+
         {/* Header — disembunyikan di halaman Scan karena ScanPage punya header sendiri */}
         {page !== "scan" && (
           <div style={{ padding: "16px 20px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "sticky", top: 0, zIndex: 100, background: "rgba(253,244,255,0.88)", backdropFilter: "blur(14px)" }}>
@@ -825,7 +849,17 @@ function AppContent() {
         )}
 
         {/* Content */}
-        <div style={{ flex: 1, padding: page === "scan" ? "0" : "4px 16px 100px", overflowY: "auto", animation: "fadeIn 0.3s ease" }} key={page}>
+        <div
+          style={{
+            flex: 1,
+            padding: page === "scan" ? "0" : "4px 16px 100px",
+            overflowY: "auto",
+            animation: "fadeIn 0.3s ease",
+            transform: pullDistance > 0 ? `translateY(${pullDistance}px)` : "none",
+            transition: pullDistance === 0 ? "transform 0.3s ease" : "none",
+          }}
+          key={page}
+        >
           {page === "dashboard"     && <Dashboard     transactions={transactions} goals={goals} loading={txLoading||goalsLoading} />}
           {page === "transactions"  && <Transactions  transactions={transactions} add={addTx} remove={removeTx} loading={txLoading} />}
           {page === "reports"       && <Reports       transactions={transactions} loading={txLoading} />}
