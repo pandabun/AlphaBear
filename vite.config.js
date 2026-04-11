@@ -5,19 +5,25 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   build: {
-    // Generate sourcemap untuk debugging
     sourcemap: false,
     rollupOptions: {
       output: {
-        // Code splitting untuk performa lebih baik
-        manualChunks: {
-          vendor: ['react', 'react-dom'],
-          charts: ['recharts'],
-          supabase: ['@supabase/supabase-js'],
+        // Ubah manualChunks menjadi fungsi
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react') || id.includes('react-dom')) {
+              return 'vendor';
+            }
+            if (id.includes('recharts')) {
+              return 'charts';
+            }
+            if (id.includes('@supabase/supabase-js')) {
+              return 'supabase';
+            }
+          }
         },
       },
     },
   },
-  // Pastikan sw.js tidak di-bundle oleh Vite
   publicDir: 'public',
 });
