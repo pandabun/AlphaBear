@@ -76,7 +76,7 @@ export default function AuthPage() {
             AlphaBear
           </h1>
           <p style={{ margin: 0, fontSize: 14, color: "#9CA3AF" }}>
-            Finance tracker keluarga
+            Catat Keuangan Icebear
           </p>
         </div>
 
